@@ -12,13 +12,14 @@ jobs:
         env:
           CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          LISTAM_MASTER_URL: ${{ secrets.LISTAM_MASTER_URL }}
         run: |
           curl -sS \
             -X POST \
             "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/browser-rendering/content" \
             -H "Authorization: Bearer ${CF_TOKEN}" \
             -H "Content-Type: application/json" \
-            --data '{"url":"https://www.list.am/category/60?n=1"}' \
+            --data "{\"url\":\"${LISTAM_MASTER_URL}\"}" \
             -o result.json
 
           cat result.json
