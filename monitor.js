@@ -345,7 +345,18 @@ async function main() {
         timeout: 60000
       });
 
-      await page.waitForTimeout(1500);
+      await page.waitForTimeout(15000);
+
+for (let i = 0; i < 10; i++) {
+  const title = await page.title();
+
+  if (!title.toLowerCase().includes("just a moment")) {
+    break;
+  }
+
+  console.log(`Cloudflare challenge detected — waiting... ${i + 1}/10`);
+  await page.waitForTimeout(3000);
+}
 
       const title = await page.title();
 
