@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 
 const MASTER_URL = process.env.LISTAM_MASTER_URL;
+console.log("TEST URL:", MASTER_URL);
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SECRET_KEY;
