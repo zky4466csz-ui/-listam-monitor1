@@ -8,18 +8,46 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Test Browser Run
+          - name: Connect to Cloudflare Browser
         env:
           CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           LISTAM_MASTER_URL: ${{ secrets.LISTAM_MASTER_URL }}
         run: |
-          curl -sS \
-            -X POST \
-            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/browser-rendering/content" \
-            -H "Authorization: Bearer ${CF_TOKEN}" \
-            -H "Content-Type: application/json" \
-            --data "{\"url\":\"${LISTAM_MASTER_URL}\"}" \
-            -o result.json
+          npm install playwright-core
 
-          cat result.json
+          node - <<'NODE'
+          const { chromium } = require("playwright-core");
+
+          const accountId = process.env.CF_ACCOUNT_ID;
+          const token = process.env.CF_TOKEN;
+          const url = process.env.LISTAM_MASTER_URL;
+
+          const ws = `wss://api.cloudflare.com/client/v4/accounts/${accountId}/browser-rendering/devtools/browser?keep_alive=600000`;
+
+          (async () => {
+            const browser = await chromium.connectOverCDP(ws, {
+              headers: {
+                Authorization: `Bearer ${token}`
+              }
+            });
+
+            const context = browser.contexts()[0];
+            const page = context.pages()[0] || await context.newPage();
+
+            await page.goto(url, {
+              waitUntil: "domcontentloaded",
+              timeout: 60000
+            });
+
+            await page.waitForTimeout(10000);
+
+            console.log("PAGE TITLE:", await page.title());
+            console.log("FINAL URL:", page.url());
+
+            await browser.close();
+          })().catch(err => {
+            console.error(err);
+            process.exit(1);
+          });
+          NODE
